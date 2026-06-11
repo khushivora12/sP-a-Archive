@@ -468,7 +468,6 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:12px;heigh
   </div>
 </div>
 
-
 <script>
 let projects=[];
 window.peopleData=[];
@@ -658,8 +657,7 @@ function renderCard(p){
     </div>
     ${(p.themes&&p.themes.length)?'<div class="theme-flags"><div class="theme-corner"></div></div>':''}`;
   makeDraggable(card,()=>openModal(p.id));
-  // Store card, rebuild rows after
-  document.getElementById('canvas').appendChild(card);
+    document.getElementById('canvas').appendChild(card);
   const _img=card.querySelector('img');
   if(_img){
     _img.addEventListener('load',layoutMasonry);
@@ -1010,7 +1008,6 @@ document.querySelectorAll('.sb-item').forEach(item=>{
   });
 });
 
-
 const M_COL=265;
 const M_GAP=35;
 const M_PAD=35;
@@ -1031,9 +1028,7 @@ function doLayout(){
   const visible=[...canvas.querySelectorAll('.pcard:not(.dimmed)')];
   const dimmed=[...canvas.querySelectorAll('.pcard.dimmed')];
 
-  // Strict left-to-right: card i goes to column i%cols
-  // Set all widths first so offsetHeight is accurate
-  visible.forEach(card=>card.style.width=M_COL+'px');
+      visible.forEach(card=>card.style.width=M_COL+'px');
   dimmed.forEach(card=>card.style.width=M_COL+'px');
 
   visible.forEach((card,i)=>{
@@ -1056,7 +1051,6 @@ function doLayout(){
 }
 
 window.addEventListener('resize',layoutMasonry);
-
 
 function makeDraggable(el,onTap){
   let sx,sy,moved=false,dragging=false;
@@ -1095,18 +1089,15 @@ function makeDraggable(el,onTap){
   document.addEventListener('touchend',onEnd);
 }
 
-
 let exhibitionProjects=[];
 
 async function loadExhibition(){
   try{
     const base=`https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv`;
     const res=await fetch(base+'&sheet=Exhibition');
-    console.log('Exhibition fetch status:',res.status,res.ok);
     if(!res.ok){console.warn('Exhibition sheet not accessible');return;}
     const text=await res.text();
     const rows=parseCSV(text);
-    console.log('Exhibition rows:',rows.length,'Headers:',rows[0]);
     if(rows.length<2)return;
     const headers=rows[0].map(h=>h.replace(/"/g,'').trim().toLowerCase().replace(/[^a-z0-9]/g,''));
     exhibitionProjects=[];
@@ -1125,7 +1116,6 @@ async function loadExhibition(){
       if(p.name)exhibitionProjects.push(p);
     });
   }catch(e){console.warn('Exhibition sheet error:',e);}
-   console.log('Exhibition loaded:',exhibitionProjects.length,'projects');
 }
 
 function renderExhibition(){
