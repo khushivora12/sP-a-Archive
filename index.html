@@ -320,10 +320,10 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:12px;heigh
     <div class="mode-nav" style="position:absolute;left:50%;transform:translateX(-50%);height:100%">
       <button class="mnav active" onclick="setMode('canvas',this)">Canvas</button>
       <button class="mnav" onclick="setMode('chrono',this)">Chronology</button>
-      <button class="mnav" onclick="setMode('people',this)">People</button>
+      <button class="mnav" onclick="setMode('people',this)">People</button><button class="mnav" onclick="setMode('exhibition',this)">Exhibition</button>
     </div>
     <div class="topbar-right">
-      <div class="img-mode-toggle"><button class="imt-btn active" id="btn-photo" onclick="setImgMode(false)">Photo</button><button class="imt-btn" id="btn-drawing" onclick="setImgMode(true)">Drawing</button></div><span class="proj-count" id="proj-count">0 projects</span><span id="sheet-status" style="font-family:'Century Gothic',sans-serif;font-size:9px;color:rgba(0,0,0,0.25);letter-spacing:0.08em;margin-left:8px"></span>
+      <div class="img-mode-toggle"><button class="imt-btn active" id="btn-photo" onclick="setImgMode('photo')">Photo</button><button class="imt-btn" id="btn-drawing" onclick="setImgMode('drawing')">Drawing</button><button class="imt-btn" id="btn-model" onclick="setImgMode('model')">Model</button></div><span class="proj-count" id="proj-count">0 projects</span><span id="sheet-status" style="font-family:'Century Gothic',sans-serif;font-size:9px;color:rgba(0,0,0,0.25);letter-spacing:0.08em;margin-left:8px"></span>
       
     </div>
   </div>
@@ -419,6 +419,7 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:12px;heigh
       <div id="view-canvas"><div class="canvas-inner" id="canvas"></div></div>
       <div id="view-chrono"><div class="chrono-inner" id="chrono-inner"></div></div>
       <div id="view-people"><div class="people-grid" id="people-grid"></div></div>
+      <div id="view-exhibition"><div class="canvas-inner" id="exhibition-canvas" style="position:relative;width:100%;min-height:100vh;background:#fff;"></div></div>
     </div>
   </div>
 </div>
@@ -471,7 +472,7 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:12px;heigh
 <script>
 let projects=[];
 window.peopleData=[];
-let drawingMode=false;
+let imgMode='photo';
 
 let filters={cat:new Set(),status:new Set(),loc:new Set(),theme:new Set()};
 
@@ -490,11 +491,12 @@ function badgeClass(s){return{Built:'sb-b',Unbuilt:'sb-u','On Site':'sb-o',Compe
 function setMode(mode,btn){
   document.querySelectorAll('.mnav').forEach(b=>b.classList.remove('active'));
   btn.classList.add('active');
-  ['canvas','chrono','people'].forEach(m=>{
+  ['canvas','chrono','people','exhibition'].forEach(m=>{
     document.getElementById('view-'+m).style.display=m===mode?'block':'none';
   });
   if(mode==='chrono')renderChrono();
   if(mode==='people')renderPeople();
+  if(mode==='exhibition')renderExhibition();
 }
 
 function toggleFilter(cat,val,el){
@@ -646,7 +648,7 @@ function updateCounts(){
 function renderCard(p){
   const card=document.createElement('div');
   card.className='pcard';card.dataset.id=p.id;
-  const imgSrc=gdrive(drawingMode?p.drawing:p.img);
+  const imgSrc=gdrive(imgMode==='drawing'?p.drawing:imgMode==='model'?p.model:p.img);
 
   card.innerHTML=`
     <div class="card-img" id="ci-${p.id}">
@@ -673,10 +675,8 @@ function openModal(id){
   imgArea.querySelectorAll('img').forEach(i=>i.remove());
   const noImg=imgArea.querySelector('.no-img');
   // In drawing mode show drawing as first image, then photos
-  const featureImg=drawingMode&&p.drawing ? p.drawing : p.img;
-  const imgs=drawingMode
-    ? [p.drawing,p.img,p.img2,p.img3].filter(Boolean)
-    : [p.img,p.img2,p.img3].filter(Boolean);
+  const featureImg=imgMode==='drawing'&&p.drawing ? p.drawing : p.img;
+  const imgs=imgMode==='drawing'?[p.drawing,p.img,p.img2,p.img3].filter(Boolean):imgMode==='model'?[p.model,p.img,p.img2,p.img3].filter(Boolean):[p.img,p.img2,p.img3].filter(Boolean);
   if(imgs.length){
     if(noImg)noImg.style.display='none';
     const img=document.createElement('img');img.src=gdrive(imgs[0]);imgArea.insertBefore(img,imgArea.firstChild);
@@ -702,9 +702,7 @@ function openModal(id){
 
 function switchModalImg(id,idx){
   const p=projects.find(x=>x.id===id);if(!p)return;
-  const imgs=drawingMode
-    ?[p.drawing,p.img,p.img2,p.img3].filter(Boolean)
-    :[p.img,p.img2,p.img3].filter(Boolean);
+  const imgs=imgMode==='drawing'?[p.drawing,p.img,p.img2,p.img3].filter(Boolean):imgMode==='model'?[p.model,p.img,p.img2,p.img3].filter(Boolean):[p.img,p.img2,p.img3].filter(Boolean);
   const imgArea=document.getElementById('modal-img');
   imgArea.querySelectorAll('img').forEach(i=>i.remove());
   document.querySelectorAll('.mit').forEach((b,i)=>b.classList.toggle('on',i===idx));
@@ -792,7 +790,7 @@ function renderChrono(){
       const card=document.createElement('div');
       card.className='ccard';
       card.style.cssText=`position:relative;transform:none;width:${CARD_W}px;outline:1px solid #111;`;
-      const imgSrc=gdrive(drawingMode?p.drawing:p.img);
+      const imgSrc=gdrive(imgMode==='drawing'?p.drawing:imgMode==='model'?p.model:p.img);
       card.innerHTML=`
         <div class="cc-img">
           ${imgSrc
@@ -895,7 +893,7 @@ async function loadFromSheet(){
         clientType:get('clienttype'),
         team:get('team').split(',').map(s=>s.trim()).filter(Boolean),
         themes:get('themes').split(',').map(s=>s.trim()).filter(Boolean),
-        img:get('featureimage'),img2:get('image2'),img3:get('image3'),drawing:get('drawing'),
+        img:get('featureimage'),img2:get('image2'),img3:get('image3'),drawing:get('drawing'),model:get('model'),
         drive:get('drivefolder')
       };
       if(!p.name)return;
@@ -953,15 +951,16 @@ function loadDemo(){
   updateCounts();
 }
 
-function setImgMode(isDrawing){
-  drawingMode=isDrawing;
-  document.getElementById('btn-photo').classList.toggle('active',!isDrawing);
-  document.getElementById('btn-drawing').classList.toggle('active',isDrawing);
+function setImgMode(mode){
+  imgMode=mode;
+  document.getElementById('btn-photo').classList.toggle('active',mode==='photo');
+  document.getElementById('btn-drawing').classList.toggle('active',mode==='drawing');
+  document.getElementById('btn-model').classList.toggle('active',mode==='model');
   // Refresh all card images
   projects.forEach(p=>{
     const box=document.getElementById('ci-'+p.id);
     if(!box)return;
-    const src=isDrawing?p.drawing:(p.img||null);
+    const src=imgMode==='drawing'?p.drawing:imgMode==='model'?p.model:(p.img||null);
     const displaySrc=src?gdrive(src):null;
     box.querySelectorAll('img').forEach(i=>i.remove());
     const ph=box.querySelector('.ph');
@@ -1090,8 +1089,85 @@ function makeDraggable(el,onTap){
   document.addEventListener('touchend',onEnd);
 }
 
+
+let exhibitionProjects=[];
+
+async function loadExhibition(){
+  try{
+    const base=`https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv`;
+    const res=await fetch(base+'&sheet=Exhibition');
+    if(!res.ok)return;
+    const text=await res.text();
+    const rows=parseCSV(text);
+    if(rows.length<2)return;
+    const headers=rows[0].map(h=>h.replace(/"/g,'').trim().toLowerCase().replace(/[^a-z0-9]/g,''));
+    exhibitionProjects=[];
+    rows.slice(1).forEach((row,i)=>{
+      const get=(name)=>{const idx=headers.indexOf(name);return idx>=0?(row[idx]||'').replace(/^"|"$/g,'').trim():'';};
+      const p={
+        id:'ex'+i,code:get('code'),name:get('name'),cat:get('category'),
+        status:get('status'),year:get('year'),city:get('city'),loc:get('state'),
+        area:get('areasqm')||get('area'),clientName:get('clientname'),
+        clientType:get('clienttype'),
+        team:get('team').split(',').map(s=>s.trim()).filter(Boolean),
+        themes:get('themes').split(',').map(s=>s.trim()).filter(Boolean),
+        img:get('featureimage'),img2:get('image2'),img3:get('image3'),
+        drawing:get('drawing'),model:get('model'),drive:get('drivefolder')
+      };
+      if(p.name)exhibitionProjects.push(p);
+    });
+  }catch(e){console.warn('Exhibition sheet error:',e);}
+}
+
+function renderExhibition(){
+  const canvas=document.getElementById('exhibition-canvas');
+  canvas.innerHTML='';
+  if(!exhibitionProjects.length){
+    canvas.innerHTML='<div style="padding:40px;color:rgba(0,0,0,0.3);font-family:Century Gothic,sans-serif;font-size:13px">No exhibition data in sheet yet — add projects to the Exhibition tab</div>';
+    return;
+  }
+  exhibitionProjects.forEach(p=>{
+    const card=document.createElement('div');
+    card.className='pcard';card.dataset.id=p.id;
+    const imgSrc=gdrive(imgMode==='drawing'?p.drawing:imgMode==='model'?p.model:p.img);
+    card.innerHTML=`
+      <div class="card-img" id="ci-${p.id}">
+        ${imgSrc?`<img src="${imgSrc}" alt="">`:`<div class="ph"></div>`}
+        <div class="card-band"><div class="card-name">${p.name}</div></div>
+      </div>
+      ${(p.themes&&p.themes.length)?'<div class="theme-flags"><div class="theme-corner"></div></div>':''}`;
+    makeDraggable(card,()=>openModal(p.id));
+    const _img=card.querySelector('img');
+    if(_img){_img.addEventListener('load',layoutExhibition);_img.addEventListener('error',layoutExhibition);}
+    canvas.appendChild(card);
+  });
+  layoutExhibition();
+}
+
+let exTimer=null;
+function layoutExhibition(){
+  clearTimeout(exTimer);
+  exTimer=setTimeout(()=>{
+    const canvas=document.getElementById('exhibition-canvas');
+    const W=canvas.offsetWidth||window.innerWidth-220;
+    if(!W)return;
+    const cols=Math.max(1,Math.floor((W-M_PAD*2+M_GAP)/(M_COL+M_GAP)));
+    const heights=new Array(cols).fill(M_PAD);
+    const cards=[...canvas.querySelectorAll('.pcard')];
+    cards.forEach((card,i)=>{
+      card.style.width=M_COL+'px';
+      const col=i%cols;
+      card.style.left=(M_PAD+col*(M_COL+M_GAP))+'px';
+      card.style.top=heights[col]+'px';
+      heights[col]+=card.offsetHeight+M_GAP;
+    });
+    canvas.style.height=(Math.max(...heights)+M_PAD)+'px';
+  },50);
+}
+
 // Boot
 loadFromSheet();
+loadExhibition();
 </script>
 </body>
 </html>
