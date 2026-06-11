@@ -579,7 +579,6 @@ function layoutExhibition(){
 
 // SHEET
 const SHEET_ID='1QB0ih3EZasiLzCCPQWhkVMisMlg_nca_w132ZIv9jOs';
-const EXHIBITION_GID='1584078715';
 
 function parseRow(headers,row){
   const get=(name)=>{const idx=headers.indexOf(name);return idx>=0?(row[idx]||'').replace(/^"|"$/g,'').trim():'';};
@@ -629,8 +628,8 @@ async function loadFromSheet(){
 
 async function loadExhibition(){
   try{
-    const url='https://docs.google.com/spreadsheets/d/'+SHEET_ID+'/gviz/tq?tqx=out:csv&gid='+EXHIBITION_GID;
-    const res=await fetch(url);
+    const res = await fetch(base + '&sheet=Exhibition');
+    const red=await fetch(base + '&sheet=Exhibition');
     if(!res.ok)return;
     const rows=parseCSV(await res.text());
     console.log(rows);
