@@ -88,8 +88,21 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:12px;heigh
   width:100%;
   background-color:#ffffff;
   padding:20px 24px 40px;
-  column-count:5;
-  column-gap:16px;
+  display:flex;
+  flex-direction:column;
+  gap:16px;
+}
+.canvas-row{
+  display:flex;
+  flex-direction:row;
+  gap:16px;
+  align-items:flex-start;
+  width:100%;
+}
+.canvas-row .pcard{
+  flex:1;
+  min-width:0;
+  margin-bottom:0;
 }
 
 /* PROJECT CARD */
@@ -98,9 +111,7 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:12px;heigh
   width:100%;
   cursor:pointer;
   user-select:none;
-  break-inside:avoid;
   transition:opacity 0.6s ease;
-  margin-bottom:16px;
 }
 .pcard.dimmed{opacity:0.1;pointer-events:none}
 
@@ -274,7 +285,7 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:12px;heigh
   .studio-name-wrap{margin-right:auto}
   .topbar{padding:0 12px;gap:0}
   .canvas-inner{width:100%;min-height:100%}
-  .canvas-inner{column-count:2;column-gap:10px;padding:12px;}
+  .canvas-inner{padding:12px;gap:10px;} .canvas-row{gap:10px;}
   .card-name{font-size:14px}
 
   .ccard{width:130px}
@@ -594,42 +605,17 @@ function applyFilters(){
     else unmatched.push({card,p});
   });
 
-  // Sort matched by group key so same-group cards are together
-  // Preserve order within each group by original project index
+  // Sort matched by group
   matched.sort((a,b)=>{
     if(a.groupKey<b.groupKey)return-1;
     if(a.groupKey>b.groupKey)return 1;
     return projects.indexOf(a.p)-projects.indexOf(b.p);
   });
 
-  // Enable position transition for filter animation
-  document.querySelectorAll('.pcard').forEach(c=>c.style.transition='left 1.5s cubic-bezier(0.4,0,0.2,1),top 1.5s cubic-bezier(0.4,0,0.2,1),opacity 0.6s ease');
-
-  // Position matched cards at top
-  matched.forEach(({card,p},i)=>{
-    const col=i%cols;
-    const row=Math.floor(i/cols);
-    const nx=SX+col*(CARD+GAP);
-    const ny=TOP+row*(CARD+GAP);
-    card.style.left=nx+'px';
-    card.style.top=ny+'px';
-    card.classList.remove('dimmed');
-  });
-
-  // Position unmatched cards below matched rows
-  const matchedRows=Math.ceil(matched.length/cols)||0;
-  const unmatchedStartY=TOP+matchedRows*(CARD+GAP)+(matched.length?GAP*2:0);
-
-  unmatched.forEach(({card,p},i)=>{
-    const col=i%cols;
-    const row=Math.floor(i/cols);
-    const nx=SX+col*(CARD+GAP);
-    const ny=unmatchedStartY+row*(CARD+GAP);
-    card.style.left=nx+'px';
-    card.style.top=ny+'px';
-    card.classList.add('dimmed');
-  });
-
+  // Reorder DOM — matched first, unmatched after
+  matched.forEach(({card})=>{card.classList.remove('dimmed');canvas.appendChild(card);});
+  unmatched.forEach(({card})=>{card.classList.add('dimmed');canvas.appendChild(card);});
+  buildRows();
 }
 
 function clearFilters(){
@@ -639,12 +625,12 @@ function clearFilters(){
   document.getElementById('year-max').value=2025;
   updateYearLabel();
   document.querySelector('.search-input').value='';
-  // Restore original positions
-  document.querySelectorAll('.pcard').forEach(card=>{
-    const p=projects.find(x=>x.id===card.dataset.id);
-    if(!p)return;
-    card.classList.remove('dimmed');
+  // Restore original order
+  projects.forEach(p=>{
+    const card=canvas.querySelector(`[data-id="${p.id}"]`);
+    if(card){card.classList.remove('dimmed');canvas.appendChild(card);}
   });
+  buildRows();
   updateCounts();
 }
 
@@ -719,7 +705,38 @@ function renderCard(p){
     </div>
     ${(p.themes&&p.themes.length)?'<div class="theme-flags"><div class="theme-corner"></div></div>':''}`;
   card.addEventListener('click',()=>openModal(p.id));
+  // Store card, rebuild rows after
   document.getElementById('canvas').appendChild(card);
+  scheduleRowRebuild();
+}
+
+let rowRebuildTimer=null;
+function scheduleRowRebuild(){
+  clearTimeout(rowRebuildTimer);
+  rowRebuildTimer=setTimeout(buildRows,50);
+}
+
+function buildRows(){
+  const canvas=document.getElementById('canvas');
+  const cards=[...canvas.querySelectorAll('.pcard')];
+  if(!cards.length)return;
+  // Remove existing rows, keep cards
+  canvas.querySelectorAll('.canvas-row').forEach(r=>{
+    [...r.children].forEach(c=>canvas.appendChild(c));
+    r.remove();
+  });
+  // Group into rows of 5
+  const COLS=5;
+  const rows=[];
+  for(let i=0;i<cards.length;i+=COLS){
+    rows.push(cards.slice(i,i+COLS));
+  }
+  rows.forEach(rowCards=>{
+    const row=document.createElement('div');
+    row.className='canvas-row';
+    rowCards.forEach(card=>row.appendChild(card));
+    canvas.appendChild(row);
+  });
 }
 
 function openModal(id){
