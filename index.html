@@ -633,12 +633,15 @@ async function loadExhibition(){
     const res=await fetch(url);
     if(!res.ok)return;
     const rows=parseCSV(await res.text());
+    console.log(rows);
     if(rows.length<2)return;
     const headers=rows[0].map(h=>h.replace(/"/g,'').trim().toLowerCase().replace(/[^a-z0-9]/g,''));
+    console.log(headers);
     exProjects=[];
     rows.slice(1).forEach((row,i)=>{
       const p=Object.assign({id:'ex'+i},parseRow(headers,row));
       if(p.name)exProjects.push(p);
+      console.log(exProjects);
     });
     console.warn('Exhibition loaded:',exProjects.length,'projects');
   }catch(e){console.warn('Exhibition error:',e);}
