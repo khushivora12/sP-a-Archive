@@ -970,6 +970,8 @@ function setImgMode(isDrawing){
       const img=document.createElement('img');
       img.src=displaySrc;
       img.style.cssText='display:block;width:100%;height:auto;';
+      img.addEventListener('load',layoutMasonry);
+      img.addEventListener('error',layoutMasonry);
       box.insertBefore(img,box.firstChild);
     } 
     else{
@@ -981,7 +983,8 @@ function setImgMode(isDrawing){
         box.appendChild(newPh);
       }
     }
-  });
+  }
+layoutMasonry();
   // Always re-render chronology so toggle is reflected when switching modes
   renderChrono();
 }
