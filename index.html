@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>sP+a — Studio Archive</title>
-<link href="https://fonts.googleapis.com/css2?family=Century+Gothic:wght@400;700https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@300;400;600;700;900&family=Barlow:wght@300;400;500&display=swapdisplay=swap" rel="stylesheet">
+
 <style>
 :root{
   --mustard:#111111;
@@ -470,34 +470,6 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:12px;heigh
   </div>
 </div>
 
-    <div class="form-grid">
-      <div class="fg"><div class="fl">Project code</div><input class="fi" id="f-code" placeholder="SP—001"></div>
-      <div class="fg"><div class="fl">Year</div><input class="fi" id="f-year" placeholder="2018" type="number"></div>
-      <div class="fg full"><div class="fl">Project name</div><input class="fi" id="f-name" placeholder="Maya Somaiya Library"></div>
-      <div class="fg"><div class="fl">Category</div>
-        <select class="fs" id="f-cat"><option value="">Select</option><option>Eat</option><option>Live</option><option>Pray</option><option>Work</option><option>Shop</option><option>Learn</option><option>Celebrate</option></select>
-      </div>
-      <div class="fg"><div class="fl">Status</div>
-        <select class="fs" id="f-status"><option value="">Select</option><option>Built</option><option>Unbuilt</option><option>On Site</option><option>Competition</option></select>
-      </div>
-      <div class="fg"><div class="fl">City</div><input class="fi" id="f-city" placeholder="Kopargaon"></div>
-      <div class="fg"><div class="fl">State / Country</div><input class="fi" id="f-loc" placeholder="Maharashtra"></div>
-      <div class="fg"><div class="fl">Area (sqm)</div><input class="fi" id="f-area" placeholder="550" type="number"></div>
-      <div class="fg"><div class="fl">Client type</div>
-        <select class="fs" id="f-client"><option value="">Select</option><option>Private Individual</option><option>Private Trust / NGO</option><option>Corporate</option><option>Government</option><option>Developer</option><option>Academic Institution</option></select>
-      </div>
-      <div class="fg full"><div class="fl">Client name</div><input class="fi" id="f-clientname" placeholder="Somaiya Vidyavihar"></div>
-      <div class="fg full"><div class="fl">Team (comma separated)</div><input class="fi" id="f-team" placeholder="Sameep Padora, Aparna Dhareshwar, Vami Koticha"></div>
-      <div class="fg full"><div class="fl">Thematic tags (comma separated)</div><input class="fi" id="f-themes" placeholder="outdoor room, corbelling, weight"></div>
-      <div class="fg full"><div class="fl">Feature image — Google Drive direct share link</div><input class="fi" id="f-img" placeholder="https://drive.google.com/file/d/.../view"></div>
-      <div class="fg full"><div class="fl">Drive folder link</div><input class="fi" id="f-drive" placeholder="https://drive.google.com/drive/folders/..."></div>
-    </div>
-    <div class="form-btns">
-      <button class="f-cancel" onclick="closeForm()">Cancel</button>
-      <button class="f-save" onclick="saveProject()">Save to canvas</button>
-    </div>
-  </div>
-</div>
 
 <script>
 let projects=[];
@@ -907,17 +879,14 @@ async function loadFromSheet(){
   try{
     const base=`https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv`;
     const projRes=await fetch(base+'&sheet=Projects');
-    console.log('Sheet fetch status:',projRes.status,projRes.ok);
     if(!projRes.ok)throw new Error('not public');
     const projText=await projRes.text();
     const projRows=parseCSV(projText);
-    console.log('Parsed rows:',projRows.length,'First row:',projRows[0]);
     if(projRows.length<2)throw new Error('no data');
     projects=[];
     document.getElementById('canvas').innerHTML='';
     const headers=projRows[0].map(h=>h.replace(/"/g,'').trim().toLowerCase().replace(/[^a-z0-9]/g,''));
-    console.log('Headers found:',headers);
-    console.log('Row count:',projRows.length);
+
     projRows.slice(1).forEach((row,i)=>{
       const get=(name)=>{const idx=headers.indexOf(name);return idx>=0?(row[idx]||'').replace(/^"|"$/g,'').trim():'';};
       const p={
@@ -932,7 +901,6 @@ async function loadFromSheet(){
       };
       if(!p.name)return;
       projects.push(p);renderCard(p);
-      if(projects.length===1)console.log('First card rendered:',p.name,p.img);
     });
     try{
       const pr=await fetch(base+'&sheet=People');
@@ -944,7 +912,6 @@ async function loadFromSheet(){
     if(st){st.textContent='● live from sheets';st.style.color='rgba(0,0,0,0.3)';}
   }catch(e){
     console.warn('Sheet not accessible:',e.message,e);
-    console.log('Error type:',e.constructor.name);
     loadDemo();
   }
 }
