@@ -88,13 +88,16 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:12px;heigh
   width:100%;
   background-color:#ffffff;
   padding:20px 24px 40px;
-  position:relative;
+  column-count:5;
+  column-gap:16px;
 }
 /* PROJECT CARD */
 .pcard{
-  position:absolute;
+  position:relative;
   cursor:pointer;
   user-select:none;
+  break-inside:avoid;
+  margin-bottom:16px;
   transition:opacity 0.6s ease;
 }
 .pcard.dimmed{opacity:0.1;pointer-events:none}
@@ -110,7 +113,6 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:12px;heigh
   display:block;
   width:100%;
   height:auto;
-  min-height:120px;
 }
 .card-img .ph{
   display:block;
@@ -598,9 +600,8 @@ function applyFilters(){
   });
 
   // Reorder DOM — matched first, unmatched after
-  matched.forEach(({card})=>{card.classList.remove('dimmed');});
-  unmatched.forEach(({card})=>{card.classList.add('dimmed');});
-  layoutMasonry();
+  matched.forEach(({card})=>{card.classList.remove('dimmed');canvas.appendChild(card);});
+  unmatched.forEach(({card})=>{card.classList.add('dimmed');canvas.appendChild(card);});
 }
 
 function clearFilters(){
@@ -1032,53 +1033,6 @@ document.querySelectorAll('.sb-item').forEach(item=>{
     if(window.innerWidth<=768)toggleSidebar();
   });
 });
-
-
-const MASONRY_COLS=5;
-const MASONRY_GAP=16;
-const MASONRY_PAD=24;
-
-let masonryTimer=null;
-function layoutMasonry(){
-  clearTimeout(masonryTimer);
-  masonryTimer=setTimeout(_doLayout, 30);
-}
-
-function _doLayout(){
-  const canvas=document.getElementById('canvas');
-  const canvasW=canvas.offsetWidth;
-  if(!canvasW)return;
-
-  const colW=Math.floor((canvasW-MASONRY_PAD*2-(MASONRY_COLS-1)*MASONRY_GAP)/MASONRY_COLS);
-  const colHeights=new Array(MASONRY_COLS).fill(MASONRY_PAD);
-  const cards=[...canvas.querySelectorAll('.pcard:not(.dimmed)')];
-  const dimmed=[...canvas.querySelectorAll('.pcard.dimmed')];
-
-  cards.forEach(card=>{
-    card.style.width=colW+'px';
-    // force reflow to get accurate height
-    const h=card.getBoundingClientRect().height||card.offsetHeight;
-    const col=colHeights.indexOf(Math.min(...colHeights));
-    card.style.left=(MASONRY_PAD+col*(colW+MASONRY_GAP))+'px';
-    card.style.top=colHeights[col]+'px';
-    colHeights[col]+=h+MASONRY_GAP;
-  });
-
-  const maxH=Math.max(...colHeights)+MASONRY_GAP*2;
-  const dimColH=new Array(MASONRY_COLS).fill(maxH);
-  dimmed.forEach(card=>{
-    card.style.width=colW+'px';
-    const h=card.getBoundingClientRect().height||card.offsetHeight;
-    const col=dimColH.indexOf(Math.min(...dimColH));
-    card.style.left=(MASONRY_PAD+col*(colW+MASONRY_GAP))+'px';
-    card.style.top=dimColH[col]+'px';
-    dimColH[col]+=h+MASONRY_GAP;
-  });
-
-  canvas.style.height=(Math.max(...(dimmed.length?dimColH:colHeights))+MASONRY_PAD)+'px';
-}
-
-window.addEventListener('resize',layoutMasonry);
 
 // Boot
 loadFromSheet();
