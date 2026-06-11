@@ -1047,32 +1047,43 @@ function _doLayout(){
   const canvas=document.getElementById('canvas');
   const canvasW=canvas.offsetWidth;
   if(!canvasW)return;
+
   const colW=Math.floor((canvasW-MASONRY_PAD*2-(MASONRY_COLS-1)*MASONRY_GAP)/MASONRY_COLS);
-  const colHeights=new Array(MASONRY_COLS).fill(MASONRY_PAD);
-  const cards=[...canvas.querySelectorAll('.pcard:not(.dimmed)')];
-  const dimmed=[...canvas.querySelectorAll('.pcard.dimmed')];
 
-  cards.forEach(card=>{
+  // Set all card widths first so images can calculate their heights
+  canvas.querySelectorAll('.pcard').forEach(card=>{
     card.style.width=colW+'px';
-    const minH=Math.min(...colHeights);
-    const col=colHeights.indexOf(minH);
-    card.style.left=(MASONRY_PAD+col*(colW+MASONRY_GAP))+'px';
-    card.style.top=colHeights[col]+'px';
-    colHeights[col]+=card.offsetHeight+MASONRY_GAP;
+    card.style.left='-9999px'; // hide until positioned
   });
 
-  const maxH=Math.max(...colHeights)+MASONRY_GAP*2;
-  const dimColHeights=new Array(MASONRY_COLS).fill(maxH);
-  dimmed.forEach(card=>{
-    card.style.width=colW+'px';
-    const minH=Math.min(...dimColHeights);
-    const col=dimColHeights.indexOf(minH);
-    card.style.left=(MASONRY_PAD+col*(colW+MASONRY_GAP))+'px';
-    card.style.top=dimColHeights[col]+'px';
-    dimColHeights[col]+=card.offsetHeight+MASONRY_GAP;
-  });
+  // Wait one frame for browser to compute heights, then position
+  requestAnimationFrame(()=>{
+    const colHeights=new Array(MASONRY_COLS).fill(MASONRY_PAD);
+    const cards=[...canvas.querySelectorAll('.pcard:not(.dimmed)')];
+    const dimmed=[...canvas.querySelectorAll('.pcard.dimmed')];
 
-  canvas.style.height=(Math.max(...(dimmed.length?dimColHeights:colHeights))+MASONRY_PAD)+'px';
+    cards.forEach(card=>{
+      const h=card.offsetHeight;
+      if(!h)return; // skip unrendered
+      const col=colHeights.indexOf(Math.min(...colHeights));
+      card.style.left=(MASONRY_PAD+col*(colW+MASONRY_GAP))+'px';
+      card.style.top=colHeights[col]+'px';
+      colHeights[col]+=h+MASONRY_GAP;
+    });
+
+    const maxH=Math.max(...colHeights)+MASONRY_GAP*2;
+    const dimColH=new Array(MASONRY_COLS).fill(maxH);
+    dimmed.forEach(card=>{
+      const h=card.offsetHeight;
+      if(!h)return;
+      const col=dimColH.indexOf(Math.min(...dimColH));
+      card.style.left=(MASONRY_PAD+col*(colW+MASONRY_GAP))+'px';
+      card.style.top=dimColH[col]+'px';
+      dimColH[col]+=h+MASONRY_GAP;
+    });
+
+    canvas.style.height=(Math.max(...(dimmed.length?dimColH:colHeights))+MASONRY_PAD)+'px';
+  });
 }
 
 window.addEventListener('resize',layoutMasonry);
