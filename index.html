@@ -98,51 +98,38 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:12px;heigh
   width:100%;
   cursor:pointer;
   user-select:none;
-  overflow:hidden;
   break-inside:avoid;
   transition:opacity 0.6s ease;
   margin-bottom:16px;
 }
 .pcard.dimmed{opacity:0.1;pointer-events:none}
 
-/* image layer — crops to square */
+/* image layer — full bleed natural size */
 .card-img{
-  position:absolute;
-  inset:0;
-  background:#ffffff;
-  overflow:hidden;
+  position:relative;
+  width:100%;
+  background:#f5f5f5;
+  display:block;
 }
 .card-img img{
-  position:absolute;
-  top:-1px;left:-1px;
-  width:calc(100% + 2px);
-  height:calc(100% + 2px);
-  object-fit:cover;
-  object-position:center;
+  display:block;
+  width:100%;
+  height:auto;
 }
 .card-img .ph{
-  position:absolute;
-  inset:0;
-  opacity:0.15;
-  display:flex;
-  align-items:center;
-  justify-content:center;
+  display:block;
+  width:100%;
+  height:160px;
+  background:#f5f5f5;
 }
 
-/* border layer — sits on top of image, inside pcard */
-.card-border{
-  position:absolute;
-  inset:0;
-  border:1.5px solid var(--mustard);
-  pointer-events:none;
-  z-index:10;
-}
+.card-border{display:none;}
 
 /* hover name band — above image, below border */
 .card-band{
   position:absolute;
   bottom:0;left:0;right:0;
-  background:rgba(255,255,255,0.92);
+  background:rgba(255,255,255,0.88);
   padding:8px 10px;
   opacity:0;
   transition:opacity 0.25s ease;
@@ -520,7 +507,6 @@ window.peopleData=[];
 let drawingMode=false;
 
 let filters={cat:new Set(),status:new Set(),loc:new Set(),theme:new Set()};
-const CW=210,GAP=24,COLS=9,SX=40,SY=40,SX_ORIG=40,SY_ORIG=40;
 
 function gdrive(url){
   if(!url)return null;
@@ -571,16 +557,11 @@ function applyFilters(){
       if(!p)return;
       card.classList.remove('dimmed');
       card.style.transition='opacity 0.6s ease';
-      card.style.left=p.x+'px';
-      card.style.top=p.y+'px';
     });
     return;
   }
 
   const canvas=document.getElementById('canvas');
-  const canvasW=canvas.offsetWidth||window.innerWidth-220;
-  const CARD=210,GAP=24,SX=SX_ORIG,TOP=SY_ORIG;
-  const cols=Math.max(1,Math.floor((canvasW-SX)/(CARD+GAP)));
 
   // Categorise each project
   // matchGroup: which filter group it belongs to (first matching filter key)
@@ -663,8 +644,6 @@ function clearFilters(){
     const p=projects.find(x=>x.id===card.dataset.id);
     if(!p)return;
     card.classList.remove('dimmed');
-    card.style.left=p.x+'px';
-    card.style.top=p.y+'px';
   });
   updateCounts();
 }
@@ -728,29 +707,9 @@ function updateCounts(){
   }
 }
 
-function getPos(idx){
-  const canvasWidth=document.getElementById('canvas').offsetWidth||window.innerWidth-220;
-  const cols=Math.max(1,Math.floor((canvasWidth-SX)/(CW+GAP)));
-  const col=idx%cols;
-  const row=Math.floor(idx/cols);
-  return{x:SX+col*(CW+GAP), y:SY+row*(CW+80+GAP)};
-}
-
-function expandCanvas(){
-  const canvas=document.getElementById('canvas');
-  const cards=canvas.querySelectorAll('.pcard');
-  let maxY=0;
-  cards.forEach(card=>{
-    const bottom=card.offsetTop+card.offsetHeight;
-    if(bottom>maxY)maxY=bottom;
-  });
-  canvas.style.minHeight=(maxY+100)+'px';
-}
-
 function renderCard(p){
   const card=document.createElement('div');
   card.className='pcard';card.dataset.id=p.id;
-  card.style.left=p.x+'px';card.style.top=p.y+'px';
   const imgSrc=gdrive(drawingMode?p.drawing:p.img);
 
   card.innerHTML=`
@@ -759,46 +718,7 @@ function renderCard(p){
       <div class="card-band"><div class="card-name">${p.name}</div></div>
     </div>
     ${(p.themes&&p.themes.length)?'<div class="theme-flags"><div class="theme-corner"></div></div>':''}`;
-  makeDraggable(card,p);
   document.getElementById('canvas').appendChild(card);
-}
-
-function makeDraggable(el,p){
-  let sx,sy,moved=false,dragging=false;
-  const onStart=e=>{
-    if(e.target.closest('.card-cat'))return;
-    dragging=true;moved=false;
-    const pt=e.touches?e.touches[0]:e;
-    sx=pt.clientX-el.offsetLeft;sy=pt.clientY-el.offsetTop;
-    el.style.zIndex=999;
-    el.style.transition='opacity 0.6s ease';
-    e.preventDefault();
-  };
-  const onMove=e=>{
-    if(!dragging)return;
-    const pt=e.touches?e.touches[0]:e;
-    const nx=pt.clientX-sx,ny=pt.clientY-sy;
-    if(Math.abs(nx-el.offsetLeft)>5||Math.abs(ny-el.offsetTop)>5)moved=true;
-    const canvas=document.getElementById('canvas');
-    const maxX=Math.max(0,canvas.offsetWidth-el.offsetWidth-4);
-    const clampedX=Math.min(Math.max(0,nx),maxX);
-    const clampedY=Math.max(0,ny);
-    el.style.left=clampedX+'px';el.style.top=clampedY+'px';
-    p.x=clampedX;p.y=clampedY;
-    expandCanvas();
-    e.preventDefault();
-  };
-  const onEnd=()=>{
-    if(!dragging)return;dragging=false;el.style.zIndex='';
-    expandCanvas();
-    if(!moved)openModal(p.id);
-  };
-  el.addEventListener('mousedown',onStart,{passive:false});
-  el.addEventListener('touchstart',onStart,{passive:false});
-  document.addEventListener('mousemove',onMove,{passive:false});
-  document.addEventListener('touchmove',onMove,{passive:false});
-  document.addEventListener('mouseup',onEnd);
-  document.addEventListener('touchend',onEnd);
 }
 
 function openModal(id){
@@ -1035,10 +955,9 @@ async function loadFromSheet(){
         team:get('team').split(',').map(s=>s.trim()).filter(Boolean),
         themes:get('themes').split(',').map(s=>s.trim()).filter(Boolean),
         img:get('featureimage'),img2:get('image2'),img3:get('image3'),drawing:get('drawing'),
-        drive:get('drivefolder'),x:null,y:null
+        drive:get('drivefolder')
       };
       if(!p.name)return;
-      const pos=getPos(projects.length);p.x=pos.x;p.y=pos.y;
       projects.push(p);renderCard(p);
     });
     try{
@@ -1090,7 +1009,7 @@ function loadDemo(){
     {code:'SP—002',name:'Aatam Hostel',year:'2015',cat:'Live',status:'Built',city:'Kota',loc:'Rajasthan',area:'1200',clientType:'Private Individual',clientName:'',team:['Sameep Padora','Vami Koticha'],themes:['courtyard','collective space','weight'],img:'',img2:'',img3:'',drawing:'',drive:''},
     {code:'SP—003',name:'Hampi Art Labs',year:'2024',cat:'Work',status:'Built',city:'Vijayanagar',loc:'Karnataka',area:'5000',clientType:'Corporate',clientName:'JSW Foundation',team:['Sameep Padora','Aparna Dhareshwar','Vami Koticha'],themes:['object','section','landscape'],img:'',img2:'',img3:'',drawing:'',drive:''},
   ];
-  DEMO.forEach((d,i)=>{d.id='d'+i;const pos=getPos(i);d.x=pos.x;d.y=pos.y;projects.push(d);renderCard(d);});
+  DEMO.forEach((d,i)=>{d.id='d'+i;projects.push(d);renderCard(d);});
   updateCounts();
 }
 
