@@ -1015,7 +1015,7 @@ let mTimer=null;
 
 function layoutMasonry(){
   clearTimeout(mTimer);
-  mTimer=setTimeout(doLayout,50);
+  mTimer=setTimeout(doLayout,200);
 }
 
 function doLayout(){
@@ -1176,12 +1176,11 @@ loadExhibition();
 // Layout after paint
 requestAnimationFrame(()=>requestAnimationFrame(()=>{
   layoutMasonry();
-  setTimeout(layoutMasonry,800);
-  setTimeout(layoutMasonry,2000);
 }));
 // Re-layout on resize
 if(window.ResizeObserver){
   new ResizeObserver(()=>layoutMasonry()).observe(document.querySelector('.main'));
+  setTimeout(layoutMasonry,3000); // catch slow-loading images
 }
 </script>
 </body>
