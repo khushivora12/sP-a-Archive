@@ -579,6 +579,10 @@ function layoutExhibition(){
 
 // SHEET
 const SHEET_ID='1QB0ih3EZasiLzCCPQWhkVMisMlg_nca_w132ZIv9jOs';
+const BASE_URL =
+'https://docs.google.com/spreadsheets/d/' +
+SHEET_ID +
+'/gviz/tq?tqx=out:csv';
 
 function parseRow(headers,row){
   const get=(name)=>{const idx=headers.indexOf(name);return idx>=0?(row[idx]||'').replace(/^"|"$/g,'').trim():'';};
@@ -596,7 +600,7 @@ function parseRow(headers,row){
 async function loadFromSheet(){
   try{
     const base='https://docs.google.com/spreadsheets/d/'+SHEET_ID+'/gviz/tq?tqx=out:csv';
-    const projRes=await fetch(base+'&sheet=Projects');
+    const projRes = await fetch(BASE_URL + '&sheet=Projects');
     if(!projRes.ok)throw new Error('not public');
     const projRows=parseCSV(await projRes.text());
     if(projRows.length<2)throw new Error('no data');
@@ -609,7 +613,7 @@ async function loadFromSheet(){
       projects.push(p);renderCard(p);
     });
     try{
-      const pr=await fetch(base+'&sheet=People');
+      const pr = await fetch(BASE_URL + '&sheet=People');
       if(pr.ok){
         const rows=parseCSV(await pr.text());
         window.peopleData=rows.slice(1).map(r=>({name:(r[0]||'').replace(/"/g,'').trim(),year:(r[1]||'').replace(/"/g,'').trim(),photo:(r[2]||'').replace(/"/g,'').trim()})).filter(p=>p.name);
@@ -632,8 +636,7 @@ async function loadExhibition(){
       'https://docs.google.com/spreadsheets/d/' +
       SHEET_ID +
       '/gviz/tq?tqx=out:csv';
-    const res = await fetch(base + '&sheet=Exhibition');
-    const red=await fetch(base + '&sheet=Exhibition');
+    const res = await fetch(BASE_URL + '&sheet=Exhibition');
     if(!res.ok)return;
     const rows=parseCSV(await res.text());
     console.log(rows);
