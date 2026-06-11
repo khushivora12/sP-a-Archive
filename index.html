@@ -563,8 +563,8 @@ function applyFilters(){
   });
 
   // Reorder DOM — matched first, unmatched after
-  matched.forEach(({card})=>{card.classList.remove('dimmed');});
-  unmatched.forEach(({card})=>{card.classList.add('dimmed');});
+  matched.forEach(({card})=>{card.classList.remove('dimmed');canvas.appendChild(card);});
+  unmatched.forEach(({card})=>{card.classList.add('dimmed');canvas.appendChild(card);});
   layoutMasonry();
 }
 
