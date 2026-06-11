@@ -1030,6 +1030,10 @@ function doLayout(){
   const dimmed=[...canvas.querySelectorAll('.pcard.dimmed')];
 
   // Strict left-to-right: card i goes to column i%cols
+  // Set all widths first so offsetHeight is accurate
+  visible.forEach(card=>card.style.width=M_COL+'px');
+  dimmed.forEach(card=>card.style.width=M_COL+'px');
+
   visible.forEach((card,i)=>{
     const col=i%cols;
     card.style.left=(M_PAD+col*(M_COL+M_GAP))+'px';
