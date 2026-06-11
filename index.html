@@ -718,6 +718,7 @@ function renderCard(p){
       <div class="card-band"><div class="card-name">${p.name}</div></div>
     </div>
     ${(p.themes&&p.themes.length)?'<div class="theme-flags"><div class="theme-corner"></div></div>':''}`;
+  card.addEventListener('click',()=>openModal(p.id));
   document.getElementById('canvas').appendChild(card);
 }
 
@@ -959,6 +960,7 @@ async function loadFromSheet(){
       };
       if(!p.name)return;
       projects.push(p);renderCard(p);
+      if(projects.length===1)console.log('First card rendered:',p.name,p.img);
     });
     try{
       const pr=await fetch(base+'&sheet=People');
