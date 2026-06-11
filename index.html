@@ -1107,23 +1107,9 @@ async function loadExhibition(){
     const text=await res.text();
     const rows=parseCSV(text);
     if(rows.length<2){console.warn('Exhibition: no rows');return;}
-    // gviz sometimes merges header+value e.g. "Name Affordable Housing"
-    // Detect and split if needed
-    const known=['name','category','status','year','city','state','team','themes','featureimage','image2','image3','drivefolder','drawing','model','area','clientname','clienttype','code'];
-    const raw0=rows[0].map(h=>h.replace(/"/g,'').trim());
-    const norm0=raw0[0].toLowerCase().replace(/[^a-z0-9]/g,'');
-    const isMerged=norm0.length>10&&known.some(k=>norm0.startsWith(k)&&norm0!==k);
-    let headers,dataRows;
-    if(isMerged){
-      headers=raw0.map(h=>{const n=h.toLowerCase().replace(/[^a-z]/g,'');return known.find(k=>n.startsWith(k))||n;});
-      const firstData=raw0.map((h,ci)=>{const k=headers[ci];return k&&h.toLowerCase().replace(/[^a-z]/g,'').startsWith(k)?h.slice(k.length).replace(/[^a-z]/gi,'').trim()||h.replace(new RegExp('^'+k+'\\s*','i'),'').trim():h;});
-      dataRows=[firstData,...rows.slice(1)];
-    } else {
-      headers=raw0.map(h=>h.toLowerCase().replace(/[^a-z0-9]/g,''));
-      dataRows=rows.slice(1);
-    }
+    const headers=rows[0].map(h=>h.replace(/"/g,'').trim().toLowerCase().replace(/[^a-z0-9]/g,''));
     exhibitionProjects=[];
-    dataRows.forEach((row,i)=>{
+    rows.slice(1).forEach((row,i)=>{
       const get=(name)=>{const idx=headers.indexOf(name);return idx>=0?(row[idx]||'').replace(/^"|"$/g,'').trim():'';};
       const p={
         id:'ex'+i,code:get('code'),name:get('name'),cat:get('category'),
