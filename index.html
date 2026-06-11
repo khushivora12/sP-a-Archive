@@ -86,18 +86,16 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:12px;heigh
 #view-canvas{position:absolute;inset:0;overflow-x:hidden;overflow-y:auto;display:block}
 .canvas-inner{
   width:100%;
+  min-height:100vh;
   background-color:#ffffff;
-  padding:20px 24px 40px;
-  column-count:5;
-  column-gap:16px;
+  position:relative;
 }
 /* PROJECT CARD */
 .pcard{
-  position:relative;
+  position:absolute;
+  width:200px;
   cursor:pointer;
   user-select:none;
-  break-inside:avoid;
-  margin-bottom:16px;
   transition:opacity 0.6s ease;
 }
 .pcard.dimmed{opacity:0.1;pointer-events:none}
@@ -271,7 +269,7 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:12px;heigh
   .mode-nav{position:static!important;transform:none!important}
   .studio-name-wrap{margin-right:auto}
   .topbar{padding:0 12px;gap:0}
-  .canvas-inner{width:100%;min-height:100%}
+  .canvas-inner{width:100%;min-height:100vh}
 
   .card-name{font-size:14px}
 
@@ -572,8 +570,9 @@ function applyFilters(){
   });
 
   // Reorder DOM — matched first, unmatched after
-  matched.forEach(({card})=>{card.classList.remove('dimmed');canvas.appendChild(card);});
-  unmatched.forEach(({card})=>{card.classList.add('dimmed');canvas.appendChild(card);});
+  matched.forEach(({card})=>{card.classList.remove('dimmed');});
+  unmatched.forEach(({card})=>{card.classList.add('dimmed');});
+  layoutMasonry();
 }
 
 function clearFilters(){
@@ -661,9 +660,15 @@ function renderCard(p){
       <div class="card-band"><div class="card-name">${p.name}</div></div>
     </div>
     ${(p.themes&&p.themes.length)?'<div class="theme-flags"><div class="theme-corner"></div></div>':''}`;
-  card.addEventListener('click',()=>openModal(p.id));
+  makeDraggable(card,()=>openModal(p.id));
   // Store card, rebuild rows after
   document.getElementById('canvas').appendChild(card);
+  const _img=card.querySelector('img');
+  if(_img){
+    _img.addEventListener('load',layoutMasonry);
+    _img.addEventListener('error',layoutMasonry);
+  }
+  layoutMasonry();
 }
 
 function openModal(id){
@@ -1000,6 +1005,88 @@ document.querySelectorAll('.sb-item').forEach(item=>{
     if(window.innerWidth<=768)toggleSidebar();
   });
 });
+
+
+const M_COL=200;
+const M_GAP=16;
+const M_PAD=24;
+let mTimer=null;
+
+function layoutMasonry(){
+  clearTimeout(mTimer);
+  mTimer=setTimeout(doLayout,50);
+}
+
+function doLayout(){
+  const canvas=document.getElementById('canvas');
+  const W=canvas.offsetWidth||window.innerWidth-220;
+  const cols=Math.max(1,Math.floor((W-M_PAD*2+M_GAP)/(M_COL+M_GAP)));
+  const heights=new Array(cols).fill(M_PAD);
+
+  const visible=[...canvas.querySelectorAll('.pcard:not(.dimmed)')];
+  const dimmed=[...canvas.querySelectorAll('.pcard.dimmed')];
+
+  // Place left to right — find leftmost shortest col
+  visible.forEach(card=>{
+    const minH=Math.min(...heights);
+    const col=heights.indexOf(minH);
+    card.style.left=(M_PAD+col*(M_COL+M_GAP))+'px';
+    card.style.top=minH+'px';
+    heights[col]+=card.offsetHeight+M_GAP;
+  });
+
+  const maxH=Math.max(...heights)+M_GAP*2;
+  const dHeights=new Array(cols).fill(maxH);
+  dimmed.forEach(card=>{
+    const minH=Math.min(...dHeights);
+    const col=dHeights.indexOf(minH);
+    card.style.left=(M_PAD+col*(M_COL+M_GAP))+'px';
+    card.style.top=minH+'px';
+    dHeights[col]+=card.offsetHeight+M_GAP;
+  });
+
+  canvas.style.height=(Math.max(...(dimmed.length?dHeights:heights))+M_PAD)+'px';
+}
+
+window.addEventListener('resize',layoutMasonry);
+
+
+function makeDraggable(el,onTap){
+  let sx,sy,moved=false,dragging=false;
+  const onStart=e=>{
+    dragging=true;moved=false;
+    const pt=e.touches?e.touches[0]:e;
+    sx=pt.clientX-el.offsetLeft;
+    sy=pt.clientY-el.offsetTop;
+    el.style.zIndex=999;
+    el.style.transition='none';
+    e.preventDefault();
+  };
+  const onMove=e=>{
+    if(!dragging)return;
+    const pt=e.touches?e.touches[0]:e;
+    const nx=pt.clientX-sx;
+    const ny=Math.max(0,pt.clientY-sy);
+    if(Math.abs(nx-el.offsetLeft)>4||Math.abs(ny-el.offsetTop)>4)moved=true;
+    el.style.left=nx+'px';
+    el.style.top=ny+'px';
+    e.preventDefault();
+  };
+  const onEnd=e=>{
+    if(!dragging)return;
+    dragging=false;
+    el.style.zIndex='';
+    el.style.transition='opacity 0.6s ease';
+    if(!moved)onTap();
+    e.stopPropagation();
+  };
+  el.addEventListener('mousedown',onStart,{passive:false});
+  el.addEventListener('touchstart',onStart,{passive:false});
+  document.addEventListener('mousemove',onMove,{passive:false});
+  document.addEventListener('touchmove',onMove,{passive:false});
+  document.addEventListener('mouseup',onEnd);
+  document.addEventListener('touchend',onEnd);
+}
 
 // Boot
 loadFromSheet();
