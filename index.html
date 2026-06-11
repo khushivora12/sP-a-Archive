@@ -548,16 +548,13 @@ function applyFilters(){
     // Each active filter type is checked independently
     // groupKey = first matching filter value found, determines sort group
     const noActiveFilters=filters.cat.size===0&&filters.status.size===0&&filters.loc.size===0&&filters.theme.size===0;
-    let matchKey=null;
-    if(filters.cat.size>0&&filters.cat.has(p.cat))matchKey='1cat:'+p.cat;
-    if(!matchKey&&filters.status.size>0&&filters.status.has(p.status))matchKey='2status:'+p.status;
-    if(!matchKey&&filters.loc.size>0&&filters.loc.has(p.loc))matchKey='3loc:'+p.loc;
-    if(!matchKey&&filters.theme.size>0){
-      const mt=(p.themes||[]).find(t=>filters.theme.has(t));
-      if(mt)matchKey='4theme:'+mt;
-    }
+    const catOk=filters.cat.size===0||filters.cat.has(p.cat);
+    const statOk=filters.status.size===0||filters.status.has(p.status);
+    const locOk=filters.loc.size===0||filters.loc.has(p.loc);
+    const themeOk=filters.theme.size===0||(p.themes||[]).some(t=>filters.theme.has(t));
 
-    const isMatch=matchKey&&yrOk&&qOk;
+    const isMatch=catOk&&statOk&&locOk&&themeOk&&yrOk&&qOk;
+    const matchKey=isMatch?'match':null;
     if(isMatch) matched.push({card,p,groupKey:matchKey});
     else unmatched.push({card,p});
   });
