@@ -494,6 +494,7 @@ function setMode(mode,btn){
   ['canvas','chrono','people','exhibition'].forEach(m=>{
     document.getElementById('view-'+m).style.display=m===mode?'block':'none';
   });
+  if(mode==='canvas')layoutMasonry();
   if(mode==='chrono')renderChrono();
   if(mode==='people')renderPeople();
   if(mode==='exhibition')renderExhibition();
@@ -1171,6 +1172,7 @@ function layoutExhibition(){
 
 // Boot
 loadFromSheet();
+setTimeout(layoutMasonry, 500);
 loadExhibition();
 </script>
 </body>
