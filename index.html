@@ -628,6 +628,10 @@ async function loadFromSheet(){
 
 async function loadExhibition(){
   try{
+    const base =
+      'https://docs.google.com/spreadsheets/d/' +
+      SHEET_ID +
+      '/gviz/tq?tqx=out:csv';
     const res = await fetch(base + '&sheet=Exhibition');
     const red=await fetch(base + '&sheet=Exhibition');
     if(!res.ok)return;
