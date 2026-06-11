@@ -966,7 +966,7 @@ function setImgMode(isDrawing){
     box.querySelectorAll('img').forEach(i=>i.remove());
     const ph=box.querySelector('.ph');
     if(displaySrc){
-      if(ph)ph.style.display='none';
+      if(ph)ph.remove();
       const img=document.createElement('img');
       img.src=displaySrc;
       img.style.cssText='display:block;width:100%;height:auto;';
