@@ -112,6 +112,10 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:12px;heigh
   display:block;
   width:100%;
   height:auto;
+  min-height:1px;
+}
+.card-img{
+  min-height:150px;
 }
 .card-img .ph{
   display:block;
@@ -658,11 +662,6 @@ function renderCard(p){
     ${(p.themes&&p.themes.length)?'<div class="theme-flags"><div class="theme-corner"></div></div>':''}`;
   makeDraggable(card,()=>openModal(p.id));
     document.getElementById('canvas').appendChild(card);
-  const _img=card.querySelector('img');
-  if(_img){
-    _img.addEventListener('load',layoutMasonry);
-    _img.addEventListener('error',layoutMasonry);
-  }
   layoutMasonry();
 }
 
@@ -969,8 +968,7 @@ function setImgMode(mode){
       const img=document.createElement('img');
       img.src=displaySrc;
       img.style.cssText='display:block;width:100%;height:auto;';
-      img.addEventListener('load',layoutMasonry);
-      img.addEventListener('error',layoutMasonry);
+
       box.insertBefore(img,box.firstChild);
     } 
     else{
@@ -1140,7 +1138,7 @@ function renderExhibition(){
       ${(p.themes&&p.themes.length)?'<div class="theme-flags"><div class="theme-corner"></div></div>':''}`;
     makeDraggable(card,()=>openModal(p.id));
     const _img=card.querySelector('img');
-    if(_img){_img.addEventListener('load',layoutExhibition);_img.addEventListener('error',layoutExhibition);}
+
     canvas.appendChild(card);
   });
   layoutExhibition();
