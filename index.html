@@ -91,6 +91,7 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:12px;heigh
   min-height:100%;
   overflow-x:hidden;
   background-color:#ffffff;
+  padding:10px 30px 30px 10px;
 }
 
 /* PROJECT CARD */
@@ -101,7 +102,7 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:12px;heigh
   cursor:pointer;
   user-select:none;
   overflow:hidden;
-  transition:left 1.5s cubic-bezier(0.4,0,0.2,1),top 1.5s cubic-bezier(0.4,0,0.2,1),opacity 0.6s ease;
+  transition:opacity 0.6s ease;
 }
 .pcard.dimmed{opacity:0.1;pointer-events:none}
 
@@ -172,7 +173,7 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:12px;heigh
   display:inline-flex;
   min-width:100%;
   height:100%;
-  background-color:#fffff;
+  background-color:#fff;
   overflow:visible;
 }
 
@@ -570,6 +571,7 @@ function applyFilters(){
       const p=projects.find(x=>x.id===card.dataset.id);
       if(!p)return;
       card.classList.remove('dimmed');
+      card.style.transition='opacity 0.6s ease';
       card.style.left=p.x+'px';
       card.style.top=p.y+'px';
     });
@@ -619,6 +621,9 @@ function applyFilters(){
     if(a.groupKey>b.groupKey)return 1;
     return projects.indexOf(a.p)-projects.indexOf(b.p);
   });
+
+  // Enable position transition for filter animation
+  document.querySelectorAll('.pcard').forEach(c=>c.style.transition='left 1.5s cubic-bezier(0.4,0,0.2,1),top 1.5s cubic-bezier(0.4,0,0.2,1),opacity 0.6s ease');
 
   // Position matched cards at top
   matched.forEach(({card,p},i)=>{
@@ -769,7 +774,9 @@ function makeDraggable(el,p){
     dragging=true;moved=false;
     const pt=e.touches?e.touches[0]:e;
     sx=pt.clientX-el.offsetLeft;sy=pt.clientY-el.offsetTop;
-    el.style.zIndex=999;e.preventDefault();
+    el.style.zIndex=999;
+    el.style.transition='opacity 0.6s ease';
+    e.preventDefault();
   };
   const onMove=e=>{
     if(!dragging)return;
