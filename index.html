@@ -971,8 +971,15 @@ function setImgMode(isDrawing){
       img.src=displaySrc;
       img.style.cssText='display:block;width:100%;height:auto;';
       box.insertBefore(img,box.firstChild);
-    } else {
-      if(ph)ph.style.display='block';
+    } 
+    else{
+      if(ph){
+        ph.style.display='block';
+      } else {
+        const newPh=document.createElement('div');
+        newPh.className='ph';
+        box.appendChild(newPh);
+      }
     }
   });
   // Always re-render chronology so toggle is reflected when switching modes
