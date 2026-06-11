@@ -1020,7 +1020,7 @@ function layoutMasonry(){
 function doLayout(){
   const canvas=document.getElementById('canvas');
   const W=canvas.offsetWidth||window.innerWidth-220;
-  const cols=Math.max(1,Math.floor((W-M_PAD*2+M_GAP)/(M_COL+M_GAP)));
+  const cols=Math.max(1,Math.floor((W-M_PAD*1.5+M_GAP)/(M_COL+M_GAP)));
   const heights=new Array(cols).fill(M_PAD);
 
   const visible=[...canvas.querySelectorAll('.pcard:not(.dimmed)')];
