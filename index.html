@@ -1094,7 +1094,7 @@ let exhibitionProjects=[];
 async function loadExhibition(){
   try{
     const base=`https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv`;
-    const res=await fetch(base+'&sheet=Exhibition');
+    const res=await fetch(`https://docs.google.com/spreadsheets/d/${SHEET_ID}/export?format=csv&gid=1584078715`);
     if(!res.ok){console.warn('Exhibition sheet not accessible');return;}
     const text=await res.text();
     const rows=parseCSV(text);
