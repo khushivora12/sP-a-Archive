@@ -482,7 +482,7 @@ let filters={cat:new Set(),status:new Set(),loc:new Set(),theme:new Set()};
 function gdrive(url){
   if(!url)return null;
   const m=url.match(/\/d\/([^/]+)/);
-  if(m)return`https://lh3.googleusercontent.com/d/${m[1]}`;
+  if(m)return`https://drive.google.com/thumbnail?id=${m[1]}&sz=w600`;
   return url;
 }
 
