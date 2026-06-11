@@ -544,10 +544,6 @@ function applyFilters(){
     const yrOk=!p.year||(yr>=mn&&yr<=mx);
     const qOk=!q||(p.name+(p.code||'')+(p.city||'')+(p.loc||'')).toLowerCase().includes(q);
 
-    // Check each active filter group
-    // Each active filter type is checked independently
-    // groupKey = first matching filter value found, determines sort group
-    const noActiveFilters=filters.cat.size===0&&filters.status.size===0&&filters.loc.size===0&&filters.theme.size===0;
     const catOk=filters.cat.size===0||filters.cat.has(p.cat);
     const statOk=filters.status.size===0||filters.status.has(p.status);
     const locOk=filters.loc.size===0||filters.loc.has(p.loc);
@@ -580,6 +576,8 @@ function clearFilters(){
   updateYearLabel();
   document.querySelector('.search-input').value='';
   // Restore original order
+  // Restore original order
+  const canvas=document.getElementById('canvas');
   projects.forEach(p=>{
     const card=canvas.querySelector(`[data-id="${p.id}"]`);
     if(card){card.classList.remove('dimmed');canvas.appendChild(card);}
