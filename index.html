@@ -603,7 +603,7 @@ function applyFilters(){
   // Reorder DOM — matched first, unmatched after
   matched.forEach(({card})=>{card.classList.remove('dimmed');});
   unmatched.forEach(({card})=>{card.classList.add('dimmed');});
-  setTimeout(layoutMasonry,50);
+  layoutMasonry();
 }
 
 function clearFilters(){
@@ -1041,7 +1041,13 @@ const MASONRY_COLS=5;
 const MASONRY_GAP=16;
 const MASONRY_PAD=24;
 
+let masonryTimer=null;
 function layoutMasonry(){
+  clearTimeout(masonryTimer);
+  masonryTimer=setTimeout(_doLayout, 30);
+}
+
+function _doLayout(){
   const canvas=document.getElementById('canvas');
   const canvasW=canvas.offsetWidth;
   if(!canvasW)return;
@@ -1050,39 +1056,29 @@ function layoutMasonry(){
   const cards=[...canvas.querySelectorAll('.pcard:not(.dimmed)')];
   const dimmed=[...canvas.querySelectorAll('.pcard.dimmed')];
 
-  // Place visible cards left-to-right
   cards.forEach(card=>{
     card.style.width=colW+'px';
-    // Find shortest column
     const minH=Math.min(...colHeights);
     const col=colHeights.indexOf(minH);
-    const x=MASONRY_PAD+col*(colW+MASONRY_GAP);
-    const y=colHeights[col];
-    card.style.left=x+'px';
-    card.style.top=y+'px';
+    card.style.left=(MASONRY_PAD+col*(colW+MASONRY_GAP))+'px';
+    card.style.top=colHeights[col]+'px';
     colHeights[col]+=card.offsetHeight+MASONRY_GAP;
   });
 
-  // Place dimmed cards below
   const maxH=Math.max(...colHeights)+MASONRY_GAP*2;
   const dimColHeights=new Array(MASONRY_COLS).fill(maxH);
   dimmed.forEach(card=>{
     card.style.width=colW+'px';
     const minH=Math.min(...dimColHeights);
     const col=dimColHeights.indexOf(minH);
-    const x=MASONRY_PAD+col*(colW+MASONRY_GAP);
-    const y=dimColHeights[col];
-    card.style.left=x+'px';
-    card.style.top=y+'px';
+    card.style.left=(MASONRY_PAD+col*(colW+MASONRY_GAP))+'px';
+    card.style.top=dimColHeights[col]+'px';
     dimColHeights[col]+=card.offsetHeight+MASONRY_GAP;
   });
 
-  // Set canvas height
-  const totalH=Math.max(...dimmed.length?dimColHeights:colHeights)+MASONRY_PAD;
-  canvas.style.height=totalH+'px';
+  canvas.style.height=(Math.max(...(dimmed.length?dimColHeights:colHeights))+MASONRY_PAD)+'px';
 }
 
-// Run on load, resize, and image load
 window.addEventListener('resize',layoutMasonry);
 
 // Boot
