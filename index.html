@@ -25,7 +25,7 @@ html,body{height:100%;overflow:hidden;overflow-x:hidden;font-family:'Century Got
 
 .studio-name span{color:var(--mustard)}
 .mode-nav{display:flex;gap:0;height:100%}
-.mnav{font-family:'Century Gothic','CenturyGothic','AppleGothic',sans-serif;font-weight:400;font-size:13px;letter-spacing:0.04em;text-transform:none;padding:0 20px;border:none;background:transparent;color:rgba(0,0,0,0.35);cursor:pointer;height:100%;border-bottom:2px solid transparent;transition:all 0.15s}
+.mnav{font-family:'Century Gothic','CenturyGothic','AppleGothic',sans-serif;font-weight:400;font-size:12px;letter-spacing:0.02em;text-transform:none;padding:0 14px;border:none;background:transparent;color:rgba(0,0,0,0.35);cursor:pointer;height:100%;border-bottom:2px solid transparent;transition:all 0.15s}
 .mnav:hover{color:#111}
 .mnav.active{color:#111;border-bottom-color:#111}
 .topbar-right{margin-left:auto;display:flex;align-items:center;gap:12px;padding-right:20px}
@@ -1172,6 +1172,8 @@ function layoutExhibition(){
 }
 
 // Boot
+// Initialise view state
+document.querySelectorAll('#view-chrono,#view-people,#view-exhibition').forEach(el=>el.style.display='none');
 loadFromSheet();
 setTimeout(layoutMasonry, 500);
 loadExhibition();
