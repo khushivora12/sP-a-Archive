@@ -803,37 +803,6 @@ function doLayout(){
 
 window.addEventListener('resize',layoutMasonry);
 
-function makeDraggable(el,onTap){
-  let sx,sy,moved=false,dragging=false;
-  const onStart=e=>{
-    dragging=true;moved=false;
-    const pt=e.touches?e.touches[0]:e;
-    sx=pt.clientX-el.offsetLeft;sy=pt.clientY-el.offsetTop;
-    el.style.zIndex=999;el.style.transition='none';
-    e.preventDefault();
-  };
-  const onMove=e=>{
-    if(!dragging)return;
-    const pt=e.touches?e.touches[0]:e;
-    const nx=pt.clientX-sx,ny=Math.max(0,pt.clientY-sy);
-    if(Math.abs(nx-el.offsetLeft)>4||Math.abs(ny-el.offsetTop)>4)moved=true;
-    el.style.left=nx+'px';el.style.top=ny+'px';
-    e.preventDefault();
-  };
-  const onEnd=e=>{
-    if(!dragging)return;
-    dragging=false;el.style.zIndex='';el.style.transition='opacity 0.6s ease';
-    if(!moved)onTap();
-    e.stopPropagation();
-  };
-  el.addEventListener('mousedown',onStart,{passive:false});
-  el.addEventListener('touchstart',onStart,{passive:false});
-  document.addEventListener('mousemove',onMove,{passive:false});
-  document.addEventListener('touchmove',onMove,{passive:false});
-  document.addEventListener('mouseup',onEnd);
-  document.addEventListener('touchend',onEnd);
-}
-
 // Boot
 document.querySelectorAll('#view-chrono,#view-people,#view-exhibition').forEach(el=>el.style.display='none');
 loadFromSheet();
