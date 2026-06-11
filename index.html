@@ -96,7 +96,7 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:12px;heigh
   width:275px;
   cursor:pointer;
   user-select:none;
-  transition:opacity 0.6s ease;
+  transition:opacity 1s ease;
 }
 .pcard.dimmed{opacity:0.1;pointer-events:none}
 
@@ -524,7 +524,7 @@ function applyFilters(){
       const p=projects.find(x=>x.id===card.dataset.id);
       if(!p)return;
       card.classList.remove('dimmed');
-      card.style.transition='opacity 0.6s ease';
+      card.style.transition='opacity 1s ease';
     });
     return;
   }
