@@ -88,27 +88,15 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:12px;heigh
   width:100%;
   background-color:#ffffff;
   padding:20px 24px 40px;
-  display:flex;
-  flex-direction:column;
-  gap:16px;
+  position:relative;
 }
-.canvas-row{
-  display:flex;
-  flex-direction:row;
-  gap:16px;
-  align-items:flex-start;
-  width:100%;
-}
-.canvas-row .pcard{
-  flex:1;
-  min-width:0;
-  margin-bottom:0;
+.pcard{
+  position:absolute !important;
+  transition:opacity 0.6s ease, left 0.4s ease, top 0.4s ease;
 }
 
 /* PROJECT CARD */
 .pcard{
-  position:relative;
-  width:100%;
   cursor:pointer;
   user-select:none;
   transition:opacity 0.6s ease;
@@ -285,7 +273,7 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:12px;heigh
   .studio-name-wrap{margin-right:auto}
   .topbar{padding:0 12px;gap:0}
   .canvas-inner{width:100%;min-height:100%}
-  .canvas-inner{padding:12px;gap:10px;} .canvas-row{gap:10px;}
+
   .card-name{font-size:14px}
 
   .ccard{width:130px}
@@ -613,9 +601,9 @@ function applyFilters(){
   });
 
   // Reorder DOM — matched first, unmatched after
-  matched.forEach(({card})=>{card.classList.remove('dimmed');canvas.appendChild(card);});
-  unmatched.forEach(({card})=>{card.classList.add('dimmed');canvas.appendChild(card);});
-  buildRows();
+  matched.forEach(({card})=>{card.classList.remove('dimmed');});
+  unmatched.forEach(({card})=>{card.classList.add('dimmed');});
+  setTimeout(layoutMasonry,50);
 }
 
 function clearFilters(){
@@ -630,7 +618,6 @@ function clearFilters(){
     const card=canvas.querySelector(`[data-id="${p.id}"]`);
     if(card){card.classList.remove('dimmed');canvas.appendChild(card);}
   });
-  buildRows();
   updateCounts();
 }
 
@@ -707,36 +694,6 @@ function renderCard(p){
   card.addEventListener('click',()=>openModal(p.id));
   // Store card, rebuild rows after
   document.getElementById('canvas').appendChild(card);
-  scheduleRowRebuild();
-}
-
-let rowRebuildTimer=null;
-function scheduleRowRebuild(){
-  clearTimeout(rowRebuildTimer);
-  rowRebuildTimer=setTimeout(buildRows,50);
-}
-
-function buildRows(){
-  const canvas=document.getElementById('canvas');
-  const cards=[...canvas.querySelectorAll('.pcard')];
-  if(!cards.length)return;
-  // Remove existing rows, keep cards
-  canvas.querySelectorAll('.canvas-row').forEach(r=>{
-    [...r.children].forEach(c=>canvas.appendChild(c));
-    r.remove();
-  });
-  // Group into rows of 5
-  const COLS=5;
-  const rows=[];
-  for(let i=0;i<cards.length;i+=COLS){
-    rows.push(cards.slice(i,i+COLS));
-  }
-  rows.forEach(rowCards=>{
-    const row=document.createElement('div');
-    row.className='canvas-row';
-    rowCards.forEach(card=>row.appendChild(card));
-    canvas.appendChild(row);
-  });
 }
 
 function openModal(id){
@@ -1078,6 +1035,55 @@ document.querySelectorAll('.sb-item').forEach(item=>{
     if(window.innerWidth<=768)toggleSidebar();
   });
 });
+
+
+const MASONRY_COLS=5;
+const MASONRY_GAP=16;
+const MASONRY_PAD=24;
+
+function layoutMasonry(){
+  const canvas=document.getElementById('canvas');
+  const canvasW=canvas.offsetWidth;
+  if(!canvasW)return;
+  const colW=Math.floor((canvasW-MASONRY_PAD*2-(MASONRY_COLS-1)*MASONRY_GAP)/MASONRY_COLS);
+  const colHeights=new Array(MASONRY_COLS).fill(MASONRY_PAD);
+  const cards=[...canvas.querySelectorAll('.pcard:not(.dimmed)')];
+  const dimmed=[...canvas.querySelectorAll('.pcard.dimmed')];
+
+  // Place visible cards left-to-right
+  cards.forEach(card=>{
+    card.style.width=colW+'px';
+    // Find shortest column
+    const minH=Math.min(...colHeights);
+    const col=colHeights.indexOf(minH);
+    const x=MASONRY_PAD+col*(colW+MASONRY_GAP);
+    const y=colHeights[col];
+    card.style.left=x+'px';
+    card.style.top=y+'px';
+    colHeights[col]+=card.offsetHeight+MASONRY_GAP;
+  });
+
+  // Place dimmed cards below
+  const maxH=Math.max(...colHeights)+MASONRY_GAP*2;
+  const dimColHeights=new Array(MASONRY_COLS).fill(maxH);
+  dimmed.forEach(card=>{
+    card.style.width=colW+'px';
+    const minH=Math.min(...dimColHeights);
+    const col=dimColHeights.indexOf(minH);
+    const x=MASONRY_PAD+col*(colW+MASONRY_GAP);
+    const y=dimColHeights[col];
+    card.style.left=x+'px';
+    card.style.top=y+'px';
+    dimColHeights[col]+=card.offsetHeight+MASONRY_GAP;
+  });
+
+  // Set canvas height
+  const totalH=Math.max(...dimmed.length?dimColHeights:colHeights)+MASONRY_PAD;
+  canvas.style.height=totalH+'px';
+}
+
+// Run on load, resize, and image load
+window.addEventListener('resize',layoutMasonry);
 
 // Boot
 loadFromSheet();
