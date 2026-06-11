@@ -1093,12 +1093,12 @@ let exhibitionProjects=[];
 
 async function loadExhibition(){
   try{
-    const base=`https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv`;
-    const res=await fetch(`https://docs.google.com/spreadsheets/d/${SHEET_ID}/export?format=csv&gid=1584078715`);
-    if(!res.ok){console.warn('Exhibition sheet not accessible');return;}
+    const url=`https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&gid=1584078715`;
+    const res=await fetch(url);
+    if(!res.ok){console.warn('Exhibition not accessible:',res.status);return;}
     const text=await res.text();
     const rows=parseCSV(text);
-    if(rows.length<2)return;
+    if(rows.length<2){console.warn('Exhibition: no rows');return;}
     const headers=rows[0].map(h=>h.replace(/"/g,'').trim().toLowerCase().replace(/[^a-z0-9]/g,''));
     exhibitionProjects=[];
     rows.slice(1).forEach((row,i)=>{
@@ -1115,7 +1115,10 @@ async function loadExhibition(){
       };
       if(p.name)exhibitionProjects.push(p);
     });
-  }catch(e){console.warn('Exhibition sheet error:',e);}
+    console.warn('Exhibition loaded:',exhibitionProjects.length,'projects');
+    const exView=document.getElementById('view-exhibition');
+    if(exView&&exView.style.display!=='none')renderExhibition();
+  }catch(e){console.warn('Exhibition error:',e);}
 }
 
 function renderExhibition(){
@@ -1165,11 +1168,21 @@ function layoutExhibition(){
 }
 
 // Boot
-// Initialise view state
+// Initialise view state — only canvas visible
 document.querySelectorAll('#view-chrono,#view-people,#view-exhibition').forEach(el=>el.style.display='none');
+// Load data
 loadFromSheet();
-setTimeout(layoutMasonry, 500);
 loadExhibition();
+// Layout after paint
+requestAnimationFrame(()=>requestAnimationFrame(()=>{
+  layoutMasonry();
+  setTimeout(layoutMasonry,800);
+  setTimeout(layoutMasonry,2000);
+}));
+// Re-layout on resize
+if(window.ResizeObserver){
+  new ResizeObserver(()=>layoutMasonry()).observe(document.querySelector('.main'));
+}
 </script>
 </body>
 </html>
