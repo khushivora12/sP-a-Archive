@@ -425,7 +425,7 @@ function renderCard(p){
   card.className='pcard';card.dataset.id=p.id;
   const imgSrc=gdrive(imgMode==='drawing'?p.drawing:imgMode==='model'?p.model:p.img);
   card.innerHTML='<div class="card-img" id="ci-'+p.id+'">'+(imgSrc?'<img src="'+imgSrc+'" alt="">':'<div class="ph"></div>')+'<div class="card-band"><div class="card-name">'+p.name+'</div></div></div>'+((p.themes&&p.themes.length)?'<div class="theme-flags"><div class="theme-corner"></div></div>':'');
-  makeDraggable(card,()=>openModal(p.id));
+  card.onclick = () => openModal(p.id);
   document.getElementById('canvas').appendChild(card);
 }
 
@@ -580,7 +580,7 @@ function renderExhibition(){
     card.className='pcard';card.dataset.id=p.id;
     const imgSrc=gdrive(imgMode==='drawing'?p.drawing:imgMode==='model'?p.model:p.img);
     card.innerHTML='<div class="card-img" id="ci-'+p.id+'">'+(imgSrc?'<img src="'+imgSrc+'" alt="">':'<div class="ph"></div>')+'<div class="card-band"><div class="card-name">'+p.name+'</div></div></div>'+((p.themes&&p.themes.length)?'<div class="theme-flags"><div class="theme-corner"></div></div>':'');
-    makeDraggable(card,()=>openModal(p.id));
+    card.onclick = () => openModal(p.id);
     canvas.appendChild(card);
   });
   layoutExhibition();
@@ -629,7 +629,6 @@ function parseRow(headers,row){
 
 async function loadFromSheet(){
   try{
-    const base='https://docs.google.com/spreadsheets/d/'+SHEET_ID+'/gviz/tq?tqx=out:csv';
     const projRes = await fetch(BASE_URL + '&sheet=Projects');
     if(!projRes.ok)throw new Error('not public');
     const projRows=parseCSV(await projRes.text());
