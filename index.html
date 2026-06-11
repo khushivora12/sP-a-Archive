@@ -500,7 +500,16 @@ function setMode(mode,btn){
   if(mode==='canvas')layoutMasonry();
   if(mode==='chrono')renderChrono();
   if(mode==='people')renderPeople();
-  if(mode==='exhibition')renderExhibition();
+  if(mode==='exhibition'){
+    if(exhibitionProjects.length>0){renderExhibition();}
+    else{
+      // Data still loading — retry
+      const retry=setInterval(()=>{
+        if(exhibitionProjects.length>0){clearInterval(retry);renderExhibition();}
+      },200);
+      setTimeout(()=>clearInterval(retry),5000); // give up after 5s
+    }
+  }
 }
 
 function toggleFilter(cat,val,el){
