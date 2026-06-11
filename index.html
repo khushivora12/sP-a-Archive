@@ -1122,6 +1122,7 @@ async function loadExhibition(){
       if(p.name)exhibitionProjects.push(p);
     });
   }catch(e){console.warn('Exhibition sheet error:',e);}
+   console.log('Exhibition loaded:',exhibitionProjects.length,'projects');
 }
 
 function renderExhibition(){
