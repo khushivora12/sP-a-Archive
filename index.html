@@ -1022,29 +1022,28 @@ function layoutMasonry(){
 
 function doLayout(){
   const canvas=document.getElementById('canvas');
-  const W=canvas.offsetWidth||window.innerWidth-220;
-  const cols=Math.max(1,Math.floor((W-M_PAD*1.5+M_GAP)/(M_COL+M_GAP)));
+  const W=canvas.offsetWidth||document.querySelector('.main').offsetWidth||window.innerWidth-220;
+  if(!W)return;
+  const cols=Math.max(1,Math.floor((W-M_PAD*2+M_GAP)/(M_COL+M_GAP)));
   const heights=new Array(cols).fill(M_PAD);
 
   const visible=[...canvas.querySelectorAll('.pcard:not(.dimmed)')];
   const dimmed=[...canvas.querySelectorAll('.pcard.dimmed')];
 
-  // Place left to right — find leftmost shortest col
-  visible.forEach(card=>{
-    const minH=Math.min(...heights);
-    const col=heights.indexOf(minH);
+  // Strict left-to-right: card i goes to column i%cols
+  visible.forEach((card,i)=>{
+    const col=i%cols;
     card.style.left=(M_PAD+col*(M_COL+M_GAP))+'px';
-    card.style.top=minH+'px';
+    card.style.top=heights[col]+'px';
     heights[col]+=card.offsetHeight+M_GAP;
   });
 
   const maxH=Math.max(...heights)+M_GAP*2;
   const dHeights=new Array(cols).fill(maxH);
-  dimmed.forEach(card=>{
-    const minH=Math.min(...dHeights);
-    const col=dHeights.indexOf(minH);
+  dimmed.forEach((card,i)=>{
+    const col=i%cols;
     card.style.left=(M_PAD+col*(M_COL+M_GAP))+'px';
-    card.style.top=minH+'px';
+    card.style.top=dHeights[col]+'px';
     dHeights[col]+=card.offsetHeight+M_GAP;
   });
 
