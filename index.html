@@ -662,7 +662,6 @@ function renderCard(p){
     ${(p.themes&&p.themes.length)?'<div class="theme-flags"><div class="theme-corner"></div></div>':''}`;
   makeDraggable(card,()=>openModal(p.id));
     document.getElementById('canvas').appendChild(card);
-  layoutMasonry();
 }
 
 function openModal(id){
@@ -903,6 +902,8 @@ async function loadFromSheet(){
         window.peopleData=rows.slice(1).map(r=>({name:(r[0]||'').replace(/"/g,'').trim(),role:(r[1]||'').replace(/"/g,'').trim(),photo:(r[2]||'').replace(/"/g,'').trim()})).filter(p=>p.name);}
     }catch(e){}
     updateCounts();
+    layoutMasonry();
+    setTimeout(layoutMasonry,1500);
     const st=document.getElementById('sheet-status');
     if(st){st.textContent='● live';st.style.color='rgba(0,0,0,0.3)';}
   }catch(e){
@@ -1175,11 +1176,7 @@ loadExhibition();
 requestAnimationFrame(()=>requestAnimationFrame(()=>{
   layoutMasonry();
 }));
-// Re-layout on resize
-if(window.ResizeObserver){
-  new ResizeObserver(()=>layoutMasonry()).observe(document.querySelector('.main'));
-  setTimeout(layoutMasonry,3000); // catch slow-loading images
-}
+
 </script>
 </body>
 </html>
