@@ -450,9 +450,7 @@ if (imgMode === 'drawing' && p.drawing) {
 else if (imgMode === 'model' && p.model) {
     startIndex = imgs.indexOf(p.model);
 }
-  if(imgs.length)
-  {
-    if(imgs.length){
+if(imgs.length){
     if(noImg) noImg.style.display='none';
 
     const img = document.createElement('img');
@@ -842,7 +840,6 @@ document.querySelectorAll('#view-chrono,#view-people,#view-exhibition').forEach(
 loadFromSheet();
 loadExhibition();
 requestAnimationFrame(()=>requestAnimationFrame(()=>layoutMasonry()));
-}
 </script>
 </body>
 </html>
